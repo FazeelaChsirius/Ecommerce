@@ -1,10 +1,27 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
+import firebaseAppConfig from '../utils/firebase-config';
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+
+const auth = getAuth(firebaseAppConfig)
 
 const Layout = ({ children }) => {
 
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate()
+  const [session, setSession] = useState(null)
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if(user){
+        setSession(user)
+
+      } else {
+        setSession(false)
+
+      }
+    })
+  }, [])
 
   const menus = [
     {
@@ -33,6 +50,22 @@ const Layout = ({ children }) => {
     navigate(href)
     setOpen(false)
   }
+
+  if(session === null) {
+    return (
+      <div className='flex justify-center items-center h-screen'>
+        <button type="button" className="bg-purple-600 text-white font-bold py-2 px-4 rounded inline-flex items-center" disabled>
+          <svg className="animate-spin h-8 w-8 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            {/* Smooth, thinner circle moved */}
+            <circle className="opacity-52" cx="8" cy="8" r="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" transform="translate(5, 5)"></circle>
+          </svg>
+          Processing...
+        </button>
+      </div>
+    );
+  }
+  
+  
 
   return (
     <div>
@@ -67,20 +100,37 @@ const Layout = ({ children }) => {
                 </li>
               ))
             }
-            <Link 
-              to='/login'
-              className='font-semibold text-md text-purple-600 rounded-md px-3 py-3'
-            >
-              Login
-            </Link>
-            <Link 
-              to='/signup'
-              className='bg-purple-600 font-semibold text-md text-white rounded-md px-5 py-3'
-            >
-              Signup
-            </Link>
-          </ul>
 
+            {
+              !session && 
+              <>
+                <Link 
+                  to='/login'
+                  className='font-semibold text-md text-purple-600 rounded-md px-3 py-3'
+                >
+                  Login
+                </Link>
+                <Link 
+                  to='/signup'
+                  className='bg-purple-600 font-semibold text-md text-white rounded-md px-5 py-3'
+                >
+                  Signup
+                </Link>
+              </>
+            }
+
+            {
+              session && 
+              <button>
+                <img 
+                  src='/images/image.avif' 
+                  alt='pic'
+                  className='w-10 h-10 rounded-full'
+                />
+              </button>
+            }
+
+          </ul>
         </div>
       </nav>
 
