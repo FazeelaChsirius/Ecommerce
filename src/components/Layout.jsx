@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import firebaseAppConfig from '../utils/firebase-config';
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
 const auth = getAuth(firebaseAppConfig)
 
 const Layout = ({ children }) => {
 
   const [open, setOpen] = useState(false);
-  const [session, setSession] = useState(null)
+  const [accountMenu, setAccountMenu] = useState(false)
+  const [session, setSession] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,8 +65,6 @@ const Layout = ({ children }) => {
       </div>
     );
   }
-  
-  
 
   return (
     <div>
@@ -121,12 +120,41 @@ const Layout = ({ children }) => {
 
             {
               session && 
-              <button>
+              <button 
+                className='relative' 
+                onClick={() => setAccountMenu(!accountMenu)}
+              >
                 <img 
                   src='/images/image.avif' 
                   alt='pic'
                   className='w-10 h-10 rounded-full'
                 />
+                {
+                  accountMenu && 
+                  <div className='flex flex-col items-start w-[150px] py-2 bg-white absolute top-12 right-0 shadow-2xl font-semibold'>
+                    <Link 
+                      to='/profile'
+                      className='hover:bg-purple-600 hover:text-white w-full px-3 py-2 text-left'
+                    >
+                      <i className="ri-user-line mr-3"></i>
+                      My Profile
+                    </Link>
+                    <Link 
+                      to='/cart'
+                      className='hover:bg-purple-600 hover:text-white w-full px-3 py-2 text-left'
+                    >
+                      <i className="ri-shopping-cart-line mr-3"></i>
+                      Cart
+                    </Link>
+                    <Link 
+                      onClick={() => signOut(auth)}
+                      className='hover:bg-purple-600 hover:text-white w-full px-3 py-2 text-left'
+                    >
+                      <i className="ri-logout-circle-r-line mr-3"></i>
+                      SignOut
+                    </Link>
+                  </div>
+                }
               </button>
             }
 

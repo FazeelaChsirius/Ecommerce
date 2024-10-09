@@ -1,9 +1,47 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Layout from './Layout';
+import firebaseAppConfig from '../utils/firebase-config';
+import { signInWithEmailAndPassword, getAuth } from 'firebase/auth';
+
+const auth = getAuth(firebaseAppConfig)
 
 const Login = () => {
-  const [passwordType, setPasswordType] = useState('password')
+  const navigate = useNavigate();
+  const [passwordType, setPasswordType] = useState('password');
+  const [loader, setLoader] = useState(false);
+  const [error, setError] = useState(null);
+  const [formValue, setFormValue] = useState({
+    email: '',
+    password: ''
+  });
+
+  const login = async (e) => {
+    try {
+      e.preventDefault()
+      setLoader(true)
+      await signInWithEmailAndPassword(auth, formValue.email, formValue.password)
+      navigate('/')
+      
+    } catch (error) {
+      console.log(error, 'Error in Login')
+    } finally {
+      setLoader(false)
+    }
+    
+  }
+
+  const handleChange = (e) => {
+    const input = e.target
+    const name = input.name
+    const value = input.value
+    setFormValue({
+      ...formValue,
+      [name]: value
+    })
+    setError(null)
+
+  }
 
   return (
     <Layout>
@@ -22,12 +60,13 @@ const Login = () => {
           <h1 className='text-3xl font-bold '>Login</h1> 
           <p className='text-lg text-gray-600 mt-3'>Enter profile details to login</p>
 
-          <form className='mt-8'>
+          <form className='mt-8' onSubmit={login}>
             <div className='flex flex-col space-y-2'>
 
               <div className='flex flex-col my-3'>
                 <label className='text-xl font-semibold mb-2'>Email</label>
                 <input 
+                  onChange={handleChange}
                   name='email'
                   type='email'
                   placeholder='example@gmail.com'
@@ -39,6 +78,7 @@ const Login = () => {
               <div className='flex flex-col relative my-3'>
                 <label className='text-xl font-semibold mb-2'>Password</label>
                 <input 
+                  onChange={handleChange}
                   name='password'
                   type={passwordType}
                   placeholder='************'
@@ -57,19 +97,32 @@ const Login = () => {
                   }
                 </button>
               </div>
-
             </div>
 
-            <button 
-              className='bg-purple-600 text-white px-6 py-3 text-2xl font-semibold flex w-full rounded-md mt-10 justify-center'
-            > 
-              Login
-            </button>
+            {
+              loader ?
+              <h1 className='text-lg font-semibold text-gray-600'>Loading...</h1>
+              :
+              <button 
+                className='bg-purple-600 text-white px-6 py-3 text-2xl font-semibold flex w-full rounded-md mt-10 justify-center'
+              > 
+                Login
+              </button>
+            }
           </form>
 
           <div className='mt-2 text-gray-600'>
             Don't have an account ? <Link to='/signup' className='text-purple-600'>Register now</Link>
           </div>
+
+          { error && 
+            <div className='flex justify-between items-center mt-3 bg-red-400 p-3 rounded-md text-white font-semibold text-center'>
+              <p>Invalid Credentials, Please try again later</p>
+              <button onClick={() => setError(null)}>
+                <i className="ri-close-line p-2"></i>
+              </button>
+            </div>
+          }
 
         </div>
       </div>

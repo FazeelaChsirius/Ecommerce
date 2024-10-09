@@ -82,6 +82,7 @@ const Home = () => {
       <div>
         <header className='md:p-16 p-10'>
           <Swiper
+            style={{zIndex: '-1'}}
             spaceBetween={50}
             slidesPerView={1}
             pagination={true} 

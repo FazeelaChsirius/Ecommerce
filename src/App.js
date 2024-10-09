@@ -15,6 +15,7 @@ import AdminProducts from './components/Admin/Products';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import Contact from './components/Contact';
+import ProtectedLogin from './components/ProtectedRoute/ProtectedLogin';
 
 
 function App() {
@@ -24,8 +25,10 @@ function App() {
         <Route path='/' element={<Home />} />
         <Route path='/products' element={<Products /> } />
         <Route path='/category' element={<Category />}/>
-        <Route path='/login' element={<Login />} />
-        <Route path='/signup' element={<Signup />} />
+        <Route element={<ProtectedLogin />}>
+          <Route path='/login' element={<Login />} />
+          <Route path='/signup' element={<Signup />} />
+        </Route>
         <Route path='/contact-us' element={<Contact />} />
         <Route path='/admin'>
           <Route path='dashboard' element={<Dashboard />} />
