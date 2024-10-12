@@ -19,10 +19,9 @@ const Layout = ({ children }) => {
 
       } else {
         setSession(false)
-
       }
     })
-  }, [])
+  }, []);
 
   const menus = [
     {
