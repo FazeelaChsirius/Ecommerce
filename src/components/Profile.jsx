@@ -32,22 +32,6 @@ const Profile = () => {
         })
     }, [navigate]);
 
-    // const setProfilePhoto = (e) => {
-    //     const input = e.target;
-    //     const file = input.files[0];
-    
-    //     // Create a reference to a non-root location in the storage bucket
-    //     const fileRef = bucket.child(`profile-photos/${file.name}`);
-    
-    //     // Upload the file to the non-root reference
-    //     uploadBytes(fileRef, file).then((snapshot) => {
-    //         console.log('File uploaded successfully');
-    //     }).catch((error) => {
-    //         console.error('Error uploading file:', error);
-    //     });
-    // };
-    
-
     const setProfilePhoto = async (e) => {
         const input = e.target;
         const file = input.files[0];
