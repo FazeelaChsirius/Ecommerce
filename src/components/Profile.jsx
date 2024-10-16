@@ -1,24 +1,42 @@
-import React, { useEffect, useState } from 'react'
-import Layout from './Layout';
 import firebaseAppConfig from '../utils/firebase-config';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getStorage, ref, uploadBytes } from 'firebase/storage';
-import { useNavigate } from 'react-router-dom';
+import { getAuth, onAuthStateChanged, updateProfile } from 'firebase/auth';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getFirestore, collection, addDoc } from 'firebase/firestore';
 
+import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom';
+import Layout from './Layout';
+import Swal from 'sweetalert2';
+
+
+// Initialize Cloud Firestore and get a reference to the service
+
+const db = getFirestore(firebaseAppConfig);
 const auth = getAuth(firebaseAppConfig);
-const storage = getStorage();
+const storage = getStorage(firebaseAppConfig);
+
+
+// const db = getFirestore(firebaseAppConfig)
+// const auth = getAuth(firebaseAppConfig);
+// const storage = getStorage(firebaseAppConfig);
+
 
 const Profile = () => {
     const navigate = useNavigate()
     const [session, setSession] = useState(null)
+    const [uploading, setUploading] = useState(false)
     const [formValue, setFormValue] = useState({
         name: '',
         email: '',
+        mobile: '', 
+    });
+
+    const [formValueAddress, setFormValueAddress] = useState({
         address: '',
-        mobile: '',
         city: '',
-        state: ''
-    })
+        state: '',
+        pincode: ''
+    });
 
     useEffect(() => {
         onAuthStateChanged(auth, (user) => {
@@ -32,21 +50,43 @@ const Profile = () => {
         })
     }, [navigate]);
 
+    console.log(session)
+
+    // useEffect(() => {
+    //     if(session){
+    //         setFormValue({
+    //             ...formValue,
+    //             name: session.displayName,
+    //             mobile: (session.phoneNumber ? session.phoneNumber : '' )
+    //         })
+    //     }
+    // }, [])
+
     const setProfilePhoto = async (e) => {
         const input = e.target;
         const file = input.files[0];
 
         const storageRef = ref(storage, `profile-photos/${file.name}`);
-
-        uploadBytes(storageRef, file).then((snapshot) => {
+        setUploading(true)
+        const snapshot = await uploadBytes(storageRef, file);
+    
+        await uploadBytes(storageRef, file).then((snapshot) => {
             console.log('File uploaded successfully');
-            console.log(snapshot)
-
+            
         }).catch((error) => {
             console.error('Error uploading file:', error);
-        })
-    }
+        });
 
+        const url = await getDownloadURL(snapshot.ref);
+        await updateProfile(auth.currentUser, {
+            photoURL: url
+        });
+        setSession({
+            ...session,
+            photoURL: url
+        });
+        setUploading(false)
+    }
 
     const handleFormValue = (e) => {
         const input = e.target
@@ -55,8 +95,42 @@ const Profile = () => {
         setFormValue({
             ...formValue,
             [name]: value
-        })
+        });
     }
+
+    const saveProfileInfo = async (e) => {
+        e.preventDefault()
+        await updateProfile(auth.currentUser, {
+            displayName: formValue.name,
+            phoneNumber: formValue.mobile
+        });
+        new Swal({
+            icon: 'success',
+            title: 'Profile updated'
+        });
+    }
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormValueAddress({
+          ...formValueAddress,
+          [name]: value
+        });
+    };
+
+    const saveAddressForm = async (e) => {
+        e.preventDefault();
+        console.log(formValueAddress)
+    
+        try {
+          // Add form data to "addresses" collection in Firestore
+          const docRef = await addDoc(collection(db, "addresses"), formValueAddress);
+          console.log("Document written with ID: ", docRef.id);
+        } catch (error) {
+          console.error("Error adding document: ", error);
+        }
+      };
+
 
     if(session === null) {
         return (
@@ -75,39 +149,43 @@ const Profile = () => {
   return (
     <Layout>
         <div className='md:my-16 p-8 border shadow-lg mx-auto md:w-7/12 rounded-md'>
-            <div className='flex gap-4 font-semibold text-3xl'>
+            <div className='flex gap-4 font-semibold text-3xl text-purple-600'>
                 <i className="ri-user-line"></i>
                 <h1>Profile</h1>
             </div>
             <hr className='my-6'/>
 
-            <div className='relative flex justify-center items-center mt-4 mx-auto w-24 h-24'>
-                <img 
-                    src='/images/image.avif' 
-                    alt='pic'
-                    className='w-24 h-24 rounded-full cursor-pointer'
-                />
+            <div className='relative flex justify-center items-center mt-4 mx-auto w-22 h-22'>
+                {
+                    uploading ? 
+                    <img src='/images/loader.gif' alt='Upload-photo'/>
+                    : 
+                    <img 
+                        src={session.photoURL ? session.photoURL : '/images/avt.avif'}
+                        alt='Upload-photo'
+                        className='w-24 h-24 rounded-full cursor-pointe'
+                    />
+                }
                 <input 
                     type='file' 
                     accept='image/*' 
-                    className='absolute w-full top-0 left-0 p-20 opacity-0'
+                    className='absolute w-full top-0 left-0 p-7 opacity-0'
                     onChange={setProfilePhoto}
                 />
             </div>
 
             <div className='-mt-8'>
-            <form>
+                <form onSubmit={saveProfileInfo}>
                     <div className='flex flex-col space-y-2 md:mr-20 m-10'>
 
-                        <div className='flex flex-col md:my-3'>
-                            <label className='text-xl font-semibold mb-2'>Your name</label>
-                            <input 
+                        <div className='flex flex-col my-3'>
+                            <label className='text-xl font-semibold mb-2'>Name</label>
+                            <input
                                 onChange={handleFormValue}
                                 name='name'
                                 type='text'
-                                placeholder='Enter your name'
+                                placeholder='Enter your city'
                                 className='border border-gray-300 rounded-md p-2'
-                                required
                                 value={session.displayName}
                             />
                         </div>
@@ -116,24 +194,13 @@ const Profile = () => {
                             <label className='text-xl font-semibold mb-2'>Email</label>
                             <input 
                                 onChange={handleFormValue}
+                                readOnly
+                                disabled
                                 name='email'
                                 type='email'
                                 placeholder='example@gmail.com'
                                 className='border border-gray-300 rounded-md p-2'
-                                required
                                 value={session.email}
-                            />
-                        </div>
-
-                        <div className='flex flex-col my-3'>
-                            <label className='text-xl font-semibold mb-2'>Address</label>
-                            <input
-                                onChange={handleFormValue}
-                                name='address'
-                                type='text'
-                                placeholder='Enter your address'
-                                className='border border-gray-300 rounded-md p-2'
-                                value={formValue.address}
                             />
                         </div>
 
@@ -145,34 +212,9 @@ const Profile = () => {
                                 type='number'
                                 placeholder='Enter your mobile'
                                 className='border border-gray-300 rounded-md p-2'
-                                value={formValue.mobile}
+                                // value={formValue.mobile}
                             />
                         </div>
-
-                        <div className='flex flex-col my-3'>
-                            <label className='text-xl font-semibold mb-2'>City</label>
-                            <input
-                                onChange={handleFormValue}
-                                name='city'
-                                type='text'
-                                placeholder='Enter your city'
-                                className='border border-gray-300 rounded-md p-2'
-                                value={formValue.city}
-                            />
-                        </div>
-
-                        <div className='flex flex-col my-3'>
-                            <label className='text-xl font-semibold mb-2'>State</label>
-                            <input
-                                onChange={handleFormValue}
-                                name='state'
-                                type=''
-                                placeholder='Enter your state'
-                                className='border border-gray-300 rounded-md p-2'
-                                value={formValue.state}
-                            />
-                        </div>
-
                     </div>
 
                     <div className='md:mr-20 m-10'>
@@ -187,6 +229,78 @@ const Profile = () => {
                 </form>
             </div>
         </div>
+
+        <div className='md:my-16 p-8 border shadow-lg mx-auto md:w-7/12 rounded-md'>
+            <div className='flex gap-4 font-semibold text-3xl text-purple-600'>
+                <i className="ri-links-line"></i>
+                <h1>Delivery Address</h1>
+            </div>
+            <hr className='my-6'/>
+
+            <div className='-mt-8'>
+                <form onSubmit={saveAddressForm}>
+                    <div className='flex flex-col space-y-2 md:mr-20 m-10'>
+                        <div className='flex flex-col my-3'>
+                            <label className='text-xl font-semibold mb-2'>Address</label>
+                            <input
+                                type='text'
+                                name='address'
+                                onChange={handleChange}
+                                value={formValueAddress.address}
+                                placeholder='Enter your address'
+                                className='border border-gray-300 rounded-md p-2'
+                            />
+                        </div>
+
+                        <div className='flex flex-col my-3'>
+                            <label className='text-xl font-semibold mb-2'>City</label>
+                            <input
+                                type='text'
+                                name='city'
+                                onChange={handleChange}
+                                value={formValueAddress.city}
+                                placeholder='Enter your city'
+                                className='border border-gray-300 rounded-md p-2'
+                            />
+                        </div>
+
+                        <div className='flex flex-col my-3'>
+                            <label className='text-xl font-semibold mb-2'>State</label>
+                            <input
+                                type='text'
+                                name='state'
+                                onChange={handleChange}
+                                value={formValueAddress.state}
+                                placeholder='Enter your state'
+                                className='border border-gray-300 rounded-md p-2'
+                            />
+                        </div>
+
+                        <div className='flex flex-col my-3'>
+                            <label className='text-xl font-semibold mb-2'>Pincode</label>
+                            <input
+                                type='number'
+                                name='pincode'
+                                onChange={handleChange}
+                                value={formValueAddress.pincode}
+                                placeholder='Enter your pincode'
+                                className='border border-gray-300 rounded-md p-2'
+                            />
+                        </div>
+
+                    </div>
+
+                    <div className='md:mr-20 m-10'>
+                        <button 
+                            className='bg-purple-600 text-white px-6 py-3 text-2xl font-semibold flex w-full rounded-xl md:mt-10 justify-center mb-8'
+                        > 
+                            Save
+                        </button>
+                    </div>
+                </form>
+             </div>
+        </div>
+
     </Layout>
   )
 }

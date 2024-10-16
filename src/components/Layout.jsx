@@ -67,7 +67,7 @@ const Layout = ({ children }) => {
 
   return (
     <div>
-      <nav className='sticky shadow-lg p-4 top-0 left-0 bg-white'>
+      <nav className='sticky shadow-lg p-4 top-0 left-0 bg-white z-50'>
         <div className='w-10/12 mx-auto flex items-center justify-between'>
           <img 
             src='/images/logo.jpeg'
@@ -124,7 +124,7 @@ const Layout = ({ children }) => {
                 onClick={() => setAccountMenu(!accountMenu)}
               >
                 <img 
-                  src='/images/image.avif' 
+                  src={session.photoURL ? session.photoURL : '/images/image.avif'} 
                   alt='pic'
                   className='w-10 h-10 rounded-full'
                 />
@@ -245,16 +245,59 @@ const Layout = ({ children }) => {
         }}
       >
         <div className='flex flex-col text-white p-6 mr-20 gap-7 z-50 text-xl'>
-          {
-            menus.map((item, index) => (
-              <button 
-                key={index}
-                onClick={() => mobileLink(item.href)}
-              >
-                {item.label}
-              </button>
-            ))
-          }
+        {
+          session && 
+          <button 
+            className='relative' 
+            onClick={() => setAccountMenu(!accountMenu)}
+          >
+            <div className='flex capitalize justify-center items-center gap-4 font-semibold'>
+              <img 
+                src={session.photoURL ? session.photoURL : '/images/image.avif'} 
+                alt='pic'
+                className='w-10 h-10 rounded-full'
+              />
+              <p>{session.displayName}</p>
+            </div>
+            {
+              accountMenu && 
+              <div className='flex flex-col items-start w-[150px] py-2 bg-white absolute top-12 right-0 shadow-2xl font-semibold'>
+                <Link 
+                  to='/profile'
+                  className='hover:bg-purple-600 hover:text-white w-full px-3 py-2 text-left'
+                >
+                  <i className="ri-user-line mr-3"></i>
+                  My Profile
+                </Link>
+                <Link 
+                  to='/cart'
+                  className='hover:bg-purple-600 hover:text-white w-full px-3 py-2 text-left'
+                >
+                  <i className="ri-shopping-cart-line mr-3"></i>
+                  Cart
+                </Link>
+                <Link 
+                  onClick={() => signOut(auth)}
+                  className='hover:bg-purple-600 hover:text-white w-full px-3 py-2 text-left'
+                >
+                  <i className="ri-logout-circle-r-line mr-3"></i>
+                  SignOut
+                </Link>
+              </div>
+            }
+          </button>
+        }
+
+        {
+          menus.map((item, index) => (
+            <button 
+              key={index}
+              onClick={() => mobileLink(item.href)}
+            >
+              {item.label}
+            </button>
+          ))
+        }
         </div>
       </aside>
    
