@@ -120,7 +120,6 @@ const Profile = () => {
 
     const saveAddressForm = async (e) => {
         e.preventDefault();
-        console.log(formValueAddress)
     
         try {
           // Add form data to "addresses" collection in Firestore
@@ -161,7 +160,7 @@ const Profile = () => {
                     <img src='/images/loader.gif' alt='Upload-photo'/>
                     : 
                     <img 
-                        src={session.photoURL ? session.photoURL : '/images/avt.avif'}
+                        src={session.photoURL ? session.photoURL : '/images/image.avif'}
                         alt='Upload-photo'
                         className='w-24 h-24 rounded-full cursor-pointe'
                     />
