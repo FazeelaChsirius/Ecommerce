@@ -1,7 +1,7 @@
 import firebaseAppConfig from '../utils/firebase-config';
 import { getAuth, onAuthStateChanged, updateProfile } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
@@ -14,11 +14,6 @@ import Swal from 'sweetalert2';
 const db = getFirestore(firebaseAppConfig);
 const auth = getAuth(firebaseAppConfig);
 const storage = getStorage(firebaseAppConfig);
-
-
-// const db = getFirestore(firebaseAppConfig)
-// const auth = getAuth(firebaseAppConfig);
-// const storage = getStorage(firebaseAppConfig);
 
 
 const Profile = () => {
@@ -35,7 +30,8 @@ const Profile = () => {
         address: '',
         city: '',
         state: '',
-        pincode: ''
+        pincode: '',
+        userId: ''
     });
 
     useEffect(() => {
@@ -52,15 +48,43 @@ const Profile = () => {
 
     console.log(session)
 
-    // useEffect(() => {
-    //     if(session){
-    //         setFormValue({
-    //             ...formValue,
-    //             name: session.displayName,
-    //             mobile: (session.phoneNumber ? session.phoneNumber : '' )
-    //         })
-    //     }
-    // }, [])
+    useEffect(() => {
+
+        const req = async () => {
+            if(session){
+                // setFormValue({
+                //     ...formValue,
+                //     name: session.displayName,
+                //     mobile: (session.phoneNumber ? session.phoneNumber : '' )
+                // });
+                setFormValueAddress({
+                    ...formValueAddress,
+                    userId: session.uid
+                });
+    
+                // Fetch collection of docs related to the specific userId (if user is login) 
+
+                const q = query(collection(db, "addresses"), where("userId", "==", session.uid));
+                
+                const querySnapshot = await getDocs(q);
+                querySnapshot.forEach((doc) => {
+                  console.log(doc.id, " => ", doc.data());
+                });
+                                
+                // Get all the collections from firebase
+                /*
+                const snapshotAll = await getDocs(collection(db, "addresses"))
+
+                snapshotAll.forEach((doc) => {
+                    const res = doc.data()
+                    console.log(res)
+                });
+                */
+            }
+        }
+        req()
+
+    }, [session])
 
     const setProfilePhoto = async (e) => {
         const input = e.target;
@@ -125,8 +149,16 @@ const Profile = () => {
           // Add form data to "addresses" collection in Firestore
           const docRef = await addDoc(collection(db, "addresses"), formValueAddress);
           console.log("Document written with ID: ", docRef.id);
+          new Swal({
+            icon: 'success',
+            title: 'Address Saved!'
+          });
         } catch (error) {
-          console.error("Error adding document: ", error);
+            new Swal({
+                icon: 'error',
+                title: 'Failed to save address!'
+            });
+            console.error("Error adding document: ", error);
         }
       };
 
@@ -297,6 +329,11 @@ const Profile = () => {
                         </button>
                     </div>
                 </form>
+
+                <div>
+                    
+                </div>
+
              </div>
         </div>
 
