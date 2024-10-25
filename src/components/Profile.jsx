@@ -1,25 +1,25 @@
 import firebaseAppConfig from '../utils/firebase-config';
 import { getAuth, onAuthStateChanged, updateProfile } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getFirestore, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc } from 'firebase/firestore';
 
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import Layout from './Layout';
 import Swal from 'sweetalert2';
 
-
 // Initialize Cloud Firestore and get a reference to the service
-
 const db = getFirestore(firebaseAppConfig);
 const auth = getAuth(firebaseAppConfig);
 const storage = getStorage(firebaseAppConfig);
-
 
 const Profile = () => {
     const navigate = useNavigate()
     const [session, setSession] = useState(null)
     const [uploading, setUploading] = useState(false)
+    const [isAddress, setIsAddress] = useState(false)
+    const [docId, setDocId] = useState(null)
+    const [isUpdated, setIsUpdated] = useState(false)
     const [formValue, setFormValue] = useState({
         name: '',
         email: '',
@@ -63,12 +63,17 @@ const Profile = () => {
                 });
     
                 // Fetch collection of docs related to the specific userId (if user is login) 
-
                 const q = query(collection(db, "addresses"), where("userId", "==", session.uid));
                 
                 const querySnapshot = await getDocs(q);
                 querySnapshot.forEach((doc) => {
-                  console.log(doc.id, " => ", doc.data());
+                    setDocId(doc.id)
+                  const formAddress = doc.data()
+                  setFormValueAddress({
+                    ...formValueAddress,
+                    ...formAddress
+                  });
+                //   console.log(doc.data())
                 });
                                 
                 // Get all the collections from firebase
@@ -84,7 +89,7 @@ const Profile = () => {
         }
         req()
 
-    }, [session])
+    }, [session, isUpdated])
 
     const setProfilePhoto = async (e) => {
         const input = e.target;
@@ -147,8 +152,9 @@ const Profile = () => {
     
         try {
           // Add form data to "addresses" collection in Firestore
-          const docRef = await addDoc(collection(db, "addresses"), formValueAddress);
-          console.log("Document written with ID: ", docRef.id);
+          await addDoc(collection(db, "addresses"), formValueAddress);
+          setIsAddress(true)
+          setIsUpdated(!isUpdated)
           new Swal({
             icon: 'success',
             title: 'Address Saved!'
@@ -158,10 +164,32 @@ const Profile = () => {
                 icon: 'error',
                 title: 'Failed to save address!'
             });
-            console.error("Error adding document: ", error);
         }
       };
 
+      const updateAddress = async (e) => {
+        try {
+            e.preventDefault()
+            const ref = doc(db, 'addresses', docId)
+            await updateDoc(ref, formValueAddress)
+            setIsAddress(true)
+            setIsUpdated(!isUpdated)
+
+            new Swal({
+                icon: 'success',
+                title: 'Address updated!'
+            });
+
+            setFormValueAddress(null)
+           
+            
+        } catch (error) {
+            new Swal({
+                icon: 'error',
+                title: 'Failed to update address!'
+            });
+        }
+      }
 
     if(session === null) {
         return (
@@ -269,7 +297,7 @@ const Profile = () => {
             <hr className='my-6'/>
 
             <div className='-mt-8'>
-                <form onSubmit={saveAddressForm}>
+                <form onSubmit={isAddress ? updateAddress : saveAddressForm}>
                     <div className='flex flex-col space-y-2 md:mr-20 m-10'>
                         <div className='flex flex-col my-3'>
                             <label className='text-xl font-semibold mb-2'>Address</label>
@@ -277,7 +305,7 @@ const Profile = () => {
                                 type='text'
                                 name='address'
                                 onChange={handleChange}
-                                value={formValueAddress.address}
+                                value={formValueAddress?.address || ''}
                                 placeholder='Enter your address'
                                 className='border border-gray-300 rounded-md p-2'
                             />
@@ -289,7 +317,7 @@ const Profile = () => {
                                 type='text'
                                 name='city'
                                 onChange={handleChange}
-                                value={formValueAddress.city}
+                                value={formValueAddress?.city || ''}
                                 placeholder='Enter your city'
                                 className='border border-gray-300 rounded-md p-2'
                             />
@@ -301,7 +329,7 @@ const Profile = () => {
                                 type='text'
                                 name='state'
                                 onChange={handleChange}
-                                value={formValueAddress.state}
+                                value={formValueAddress?.state || ''}
                                 placeholder='Enter your state'
                                 className='border border-gray-300 rounded-md p-2'
                             />
@@ -313,7 +341,7 @@ const Profile = () => {
                                 type='number'
                                 name='pincode'
                                 onChange={handleChange}
-                                value={formValueAddress.pincode}
+                                value={formValueAddress?.pincode || ''}
                                 placeholder='Enter your pincode'
                                 className='border border-gray-300 rounded-md p-2'
                             />
@@ -321,17 +349,26 @@ const Profile = () => {
 
                     </div>
 
-                    <div className='md:mr-20 m-10'>
+                    {
+                        isAddress ? 
+                            <button 
+                                className='bg-purple-600 text-white px-6 py-3 text-2xl font-semibold flex w-full rounded-xl md:mt-10 justify-center mb-8'
+                            > 
+                                Save
+                            </button>
+                        : 
                         <button 
-                            className='bg-purple-600 text-white px-6 py-3 text-2xl font-semibold flex w-full rounded-xl md:mt-10 justify-center mb-8'
+                            className='bg-green-600 text-white px-6 py-3 text-2xl font-semibold flex w-full rounded-xl md:mt-10 justify-center mb-8'
                         > 
-                            Save
+                            Submit
                         </button>
-                    </div>
+                    }
+
+                    
                 </form>
 
                 <div>
-                    
+
                 </div>
 
              </div>

@@ -1,7 +1,14 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Layout from './Layout';
+import firebaseAppConfig from '../utils/firebase-config';
+import { getFirestore, addDoc, collection } from 'firebase/firestore';
+import { onAuthStateChanged, getAuth } from 'firebase/auth';
+
+const db = getFirestore(firebaseAppConfig)
+const auth = getAuth(firebaseAppConfig)
 
 const Cart = () => {
+  const [session, setSession] = useState(null)
   const [products, setProducts] = useState([
     {
       title: 'Smart Phone',
@@ -33,7 +40,19 @@ const Cart = () => {
       discount: 15,
       image: '/products/f.jpg'
     }
-  ])
+  ]);
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if(user){
+        setSession(user)
+
+      } else {
+        setSession(null)
+
+      }
+    })
+  }, []);
 
   return (
     <Layout>

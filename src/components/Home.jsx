@@ -1,12 +1,20 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation'
 import Layout from './Layout';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Navigation } from 'swiper/modules';
+import firebaseAppConfig from '../utils/firebase-config';
+import { getFirestore, addDoc, collection } from 'firebase/firestore';
+import { onAuthStateChanged, getAuth } from 'firebase/auth';
+import Swal from 'sweetalert2';
+
+const db = getFirestore(firebaseAppConfig)
+const auth = getAuth(firebaseAppConfig)
 
 const Home = () => {
+  const [session, setSession] = useState(null)
   const [products, setProducts] = useState([
     {
       title: 'New blue shirt for mens',
@@ -76,6 +84,43 @@ const Home = () => {
     }
   ]);
 
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if(user){
+        setSession(user)
+
+      } else {
+        setSession(null)
+
+      }
+    })
+  }, []);
+
+  console.log(session)
+
+  const addToCart = async (item) => {
+    console.log(item)
+    try {
+      item.userId = session.uid
+      await addDoc(collection(db, 'carts'), item)
+
+      new Swal({
+        icon: 'success',
+        title: 'Product added successfully!',
+        
+      })
+      
+    } catch (error) {
+      new Swal({
+        icon: 'error',
+        title: 'Failed',
+        text: error.message
+      })
+      
+    }
+
+  }
+
   return (
     
     <Layout>
@@ -128,7 +173,10 @@ const Home = () => {
                       <label className='text-gray-600'>({item.discount}%)</label>
                     </div>
                     <button className='bg-green-400 p-2 w-full text-white font-bold text-xl mt-4 rounded-md  '>Buy Now</button>
-                    <button className='bg-red-400 p-2 w-full text-white font-bold text-xl mt-4 rounded-md '>
+                    <button 
+                      onClick={() => addToCart(item)}
+                      className='bg-red-400 p-2 w-full text-white font-bold text-xl mt-4 rounded-md'
+                    >
                         <i className="ri-shopping-cart-line mr-4"></i>
                         Add to Cart
                       </button>
