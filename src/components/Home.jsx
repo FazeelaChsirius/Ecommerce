@@ -6,7 +6,7 @@ import Layout from './Layout';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Navigation } from 'swiper/modules';
 import firebaseAppConfig from '../utils/firebase-config';
-import { getFirestore, addDoc, collection } from 'firebase/firestore';
+import { getFirestore, addDoc, collection, getDocs} from 'firebase/firestore';
 import { onAuthStateChanged, getAuth } from 'firebase/auth';
 import Swal from 'sweetalert2';
 
@@ -15,74 +15,7 @@ const auth = getAuth(firebaseAppConfig)
 
 const Home = () => {
   const [session, setSession] = useState(null)
-  const [products, setProducts] = useState([
-    {
-      title: 'New blue shirt for mens',
-      price: 1200,
-      discount: 15,
-      thumbnail: '/products/a.jpg'
-    },
-    {
-      title: 'New blue shirt for mens',
-      price: 1200,
-      discount: 15,
-      thumbnail: '/products/b.jpg'
-    },
-    {
-      title: 'New blue shirt for mens',
-      price: 1200,
-      discount: 15,
-      thumbnail: '/products/c.jpg'
-    },
-    {
-      title: 'New blue shirt for mens',
-      price: 1200,
-      discount: 15,
-      thumbnail: '/products/d.jpg'
-    },
-    {
-      title: 'New blue shirt for mens',
-      price: 1200,
-      discount: 15,
-      thumbnail: '/products/e.jpg'
-    },
-    {
-      title: 'New blue shirt for mens',
-      price: 1200,
-      discount: 15,
-      thumbnail: '/products/f.jpg'
-    },
-    {
-      title: 'New blue shirt for mens',
-      price: 1200,
-      discount: 15,
-      thumbnail: '/products/g.jpg'
-    },
-    {
-      title: 'New blue shirt for mens',
-      price: 1200,
-      discount: 15,
-      thumbnail: '/products/i.jpg'
-    },
-    {
-      title: 'New blue shirt for mens',
-      price: 1200,
-      discount: 15,
-      thumbnail: '/products/j.jpg'
-    },
-    {
-      title: 'New blue shirt for mens',
-      price: 1200,
-      discount: 15,
-      thumbnail: '/products/k.jpg'
-    },
-    {
-      title: 'New blue shirt for mens',
-      price: 1200,
-      discount: 15,
-      thumbnail: '/products/l.jpg'
-    }
-  ]);
+  const [products, setProducts] = useState([])
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -96,7 +29,21 @@ const Home = () => {
     })
   }, []);
 
-  console.log(session)
+  useEffect(() => {
+    const req = async () => {
+      const snapdata = await getDocs(collection(db, 'products'))
+      const temp = []
+      snapdata.forEach((doc) => {
+        const allProducts = doc.data()
+        allProducts.id = doc.id
+        temp.push(allProducts)
+      })
+      setProducts(temp)
+
+    }
+    req()
+
+  }, [])
 
   const addToCart = async (item) => {
     console.log(item)
@@ -164,9 +111,9 @@ const Home = () => {
                   key={index}
                   className='bg-white shadow-lg rounded-lg'
                 >
-                  <img src={item.thumbnail} alt='pic' />
+                  <img src={item.image ? item.image : '/images/product.webp'} alt='pic' />
                   <div className='p-4'>
-                    <h1 className='text-lg font-semibold'>{item.title}</h1>
+                    <h1 className='text-lg font-semibold capitalize'>{item.title}</h1>
                     <div className='space-x-2'>
                       <label className='font-bold text-lg'>${(item.price*item.discount)/100}</label>
                       <del>${item.price}</del>

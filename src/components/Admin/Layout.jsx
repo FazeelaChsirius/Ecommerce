@@ -39,7 +39,7 @@ const Layout = ({children}) => {
         },
         {
             label: 'Settings',
-            icon: <i class="ri-settings-3-line mr-3"></i>,
+            icon: <i className="ri-settings-3-line mr-3"></i>,
             link: '/admin/settings'
         },
         
@@ -85,7 +85,7 @@ const Layout = ({children}) => {
             </aside>
 
             <section 
-                className='bg-gray-100 h-screen'
+                className='bg-gray-100 min-h-screen'
                 style={{
                     marginLeft: size,
                     transition: '0.5s'

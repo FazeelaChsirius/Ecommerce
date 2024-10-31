@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Layout from './Layout';
 import firebaseAppConfig from '../utils/firebase-config';
-import { getFirestore, addDoc, collection } from 'firebase/firestore';
+import { getFirestore, getDocs, collection, query, where } from 'firebase/firestore';
 import { onAuthStateChanged, getAuth } from 'firebase/auth';
 
 const db = getFirestore(firebaseAppConfig)
@@ -9,38 +9,7 @@ const auth = getAuth(firebaseAppConfig)
 
 const Cart = () => {
   const [session, setSession] = useState(null)
-  const [products, setProducts] = useState([
-    {
-      title: 'Smart Phone',
-      price: 20000,
-      discount: 15,
-      image: '/products/l.jpg'
-    },
-    {
-      title: 'Smart Phone',
-      price: 20000,
-      discount: 15,
-      image: '/products/k.jpg'
-    },
-    {
-      title: 'Smart Phone',
-      price: 20000,
-      discount: 15,
-      image: '/products/j.jpg'
-    },
-    {
-      title: 'Smart Phone',
-      price: 20000,
-      discount: 15,
-      image: '/products/i.jpg'
-    },
-    {
-      title: 'Smart Phone',
-      price: 20000,
-      discount: 15,
-      image: '/products/f.jpg'
-    }
-  ]);
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -53,6 +22,25 @@ const Cart = () => {
       }
     })
   }, []);
+
+  useEffect(() =>{
+    const req = async () => {
+
+      if(session){
+        // const col = collection(db, 'carts')
+        const q = query(collection(db, "carts"), where("userId", "==", session.uid));
+
+        const snapshot = await getDocs(q)
+        const temp = []
+        snapshot.forEach((doc) => {
+          const document = doc.data()
+          temp.push(document)
+        })
+        setProducts(temp)
+      }
+    }
+    req()
+  }, [session])
 
   return (
     <Layout>

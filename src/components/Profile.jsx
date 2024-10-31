@@ -52,11 +52,6 @@ const Profile = () => {
 
         const req = async () => {
             if(session){
-                // setFormValue({
-                //     ...formValue,
-                //     name: session.displayName,
-                //     mobile: (session.phoneNumber ? session.phoneNumber : '' )
-                // });
                 setFormValueAddress({
                     ...formValueAddress,
                     userId: session.uid
@@ -149,7 +144,6 @@ const Profile = () => {
 
     const saveAddressForm = async (e) => {
         e.preventDefault();
-    
         try {
           // Add form data to "addresses" collection in Firestore
           await addDoc(collection(db, "addresses"), formValueAddress);
