@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation'
@@ -10,8 +10,16 @@ import { getFirestore, addDoc, collection, getDocs} from 'firebase/firestore';
 import { onAuthStateChanged, getAuth } from 'firebase/auth';
 import Swal from 'sweetalert2';
 
+import axios from 'axios';
+
+import { loadStripe } from "@stripe/stripe-js";
+// Load your publishable key
+const stripePromise = loadStripe('pk_test_51QGOlSRtGbxG8XdkGhkzfZbkHxCtw79RMZfOAOPRcT5omu4crAwobQ1KUn5iw7MA1bOOsUvurT85RKxYaPoHsjRd00SZBNYuQg');
+
+
 const db = getFirestore(firebaseAppConfig)
 const auth = getAuth(firebaseAppConfig)
+
 
 const Home = () => {
   const [session, setSession] = useState(null)
@@ -63,11 +71,51 @@ const Home = () => {
         title: 'Failed',
         text: error.message
       })
-      
     }
-
   }
 
+    const handleCheckout = async () => {
+      const stripe = await stripePromise;
+  
+      try {
+        // Make a request to your backend to create a checkout session
+        const response = await fetch("http://localhost:3001/create-checkout-session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: 1000, // Amount in cents
+            currency: "usd", // Currency code
+          }),
+        });
+  
+        const contentType = response.headers.get("content-type");
+  
+        if (contentType && contentType.includes("application/json")) {
+          // Parse the JSON response to get the session data
+          const session = await response.json();
+  
+          // Redirect to Stripe Checkout using the session ID
+          const result = await stripe.redirectToCheckout({
+            sessionId: session.id, // Use the session ID from the response
+          });
+  
+          if (result.error) {
+            // Handle any errors that occur during the redirection
+            console.error("Stripe redirection error:", result.error.message);
+          }
+        } else {
+          throw new Error("Received non-JSON response from the server");
+        }
+      } catch (error) {
+        // Handle any network or server errors
+        console.error("Error creating Stripe checkout session:", error.message);
+      }
+    };
+  
+
+  
   return (
     
     <Layout>
@@ -103,6 +151,8 @@ const Home = () => {
 
         <div className='md:p-16 p-16'>
           <h1 className='text-4xl font-bold text-center'>Latest Products</h1>
+          
+          
           <p className='flex mx-auto text-center md:w-7/12 text-gray-500 mt-6 mb-6'>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Non adipisci minus nisi sunt deleniti cumque. dolores eius ratione nihil veniam Non adipisci minus nisi sunt deleniti cumque. dolores officia!</p>
           <div className='md:w-full p-16 mx-auto grid md:grid-cols-4 gap-9'>
             {
@@ -119,7 +169,13 @@ const Home = () => {
                       <del>${item.price}</del>
                       <label className='text-gray-600'>({item.discount}%)</label>
                     </div>
-                    <button className='bg-green-400 p-2 w-full text-white font-bold text-xl mt-4 rounded-md  '>Buy Now</button>
+
+                    <button 
+                      onClick={handleCheckout}
+                      className='bg-green-400 p-2 w-full text-white font-bold text-xl mt-4 rounded-md'
+                    >
+                      Buy Now
+                    </button>
                     <button 
                       onClick={() => addToCart(item)}
                       className='bg-red-400 p-2 w-full text-white font-bold text-xl mt-4 rounded-md'
