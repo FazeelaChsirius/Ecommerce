@@ -1,24 +1,24 @@
 import './App.css';
 import 'animate.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import NotFound from './components/NotFound';
-import Orders from './components/Admin/Orders';
-import Payments from './components/Admin/Payments';
-import Dashboard from './components/Admin/Dashboard';
-import Settings from './components/Admin/Settings';
-import Logout from './components/Admin/Logout';
-import Customers from './components/Admin/Customers';
-import Home from './components/Home';
-import Products from './components/Products';
-import Category from './components/Category';
-import AdminProducts from './components/Admin/Products';
-import Login from './components/Login';
-import Signup from './components/Signup';
-import Contact from './components/Contact';
-import ProtectedLogin from './components/ProtectedRoute/ProtectedLogin';
-import Cart from './components/Cart';
-import Profile from './components/Profile';
-
+import NotFound from './components/NotFound.jsx';
+import Orders from './components/Admin/Orders.jsx';
+import Payments from './components/Admin/Payments.jsx';
+import Dashboard from './components/Admin/Dashboard.jsx';
+import Settings from './components/Admin/Settings.jsx';
+import Logout from './components/Admin/Logout.jsx';
+import Customers from './components/Admin/Customers.jsx';
+import Home from './components/Home.jsx';
+import Products from './components/Products.jsx';
+import Category from './components/Category.jsx';
+import AdminProducts from './components/Admin/Products.jsx';
+import Login from './components/Login.jsx';
+import Signup from './components/Signup.jsx';
+import Contact from './components/Contact.jsx';
+import ProtectedLogin from './components/ProtectedRoute/ProtectedLogin.jsx';
+import Cart from './components/Cart.jsx';
+import Profile from './components/Profile.jsx';
+import Failed from './components/Failed.jsx';
 
 import { loadStripe } from '@stripe/stripe-js'; // Import loadStripe
 import { Elements } from '@stripe/react-stripe-js'; // Import Elements
@@ -37,6 +37,7 @@ function App() {
           <Route path='/category' element={<Category />}/>
           <Route path='/cart' element={<Cart />} />
           <Route path='/profile' element={<Profile />} />
+          <Route path='/success' element={<Profile />} />
           <Route element={<ProtectedLogin />}>
             <Route path='/login' element={<Login />} />
             <Route path='/signup' element={<Signup />} />
@@ -51,6 +52,7 @@ function App() {
             <Route path='settings' element={<Settings />} />
             <Route path='logout' element={<Logout />} />
           </Route>
+          <Route path='/failed' element={<Failed />}/>
           <Route path='*' element={<NotFound />} />
         </Routes>
       </BrowserRouter>

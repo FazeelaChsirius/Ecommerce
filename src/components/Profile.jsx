@@ -15,6 +15,7 @@ const storage = getStorage(firebaseAppConfig);
 
 const Profile = () => {
     const navigate = useNavigate()
+    const [orders, setOrders] = useState([])
     const [session, setSession] = useState(null)
     const [uploading, setUploading] = useState(false)
     const [isAddress, setIsAddress] = useState(false)
@@ -84,7 +85,23 @@ const Profile = () => {
         }
         req()
 
-    }, [session, isUpdated])
+    }, [session, isUpdated]);
+
+    useEffect(() => {
+        const req = async () => {
+            if(session) {
+                const col = collection(db, 'orders')
+                const q = query(col, where('userId', '==', session.uid))
+                const snapshot = await getDocs(q)
+                const temp = []
+                snapshot.forEach((doc) => {
+                    temp.push(doc.data())
+                });
+                setOrders(temp)
+            }
+        }
+        req()
+    }, [session])
 
     const setProfilePhoto = async (e) => {
         const input = e.target;
@@ -201,6 +218,44 @@ const Profile = () => {
 
   return (
     <Layout>
+        <div className='md:my-16 p-8 border shadow-lg mx-auto md:w-7/12 rounded-md'>
+            <div className='flex gap-4 font-semibold text-3xl text-purple-600'>
+                <i className="ri-shopping-cart-line"></i>
+                <h1>Orders</h1>
+            </div>
+            <hr className='my-6'/>
+
+            {
+                orders.map((item, index) => (
+                    <div 
+                        key={index}
+                        className='flex gap-5 my-6'
+                    >
+                        <img 
+                            src={item.image} 
+                            alt='order images'
+                            className='w-60'
+                        />
+                        <div>
+                            <h1 className='font-bold capitalize text-2xl'>{item.title}</h1>
+                            <p className='text-gray-600'>{item.description.slice(0,50)}</p>
+                            <div className='space-x-2'>
+                                <label>
+                                    {item.price - (item.price * item.discount) / 100}
+                                </label>
+                                <del>${item.price}</del>
+                                <label>({item.discount} Off)%</label>
+                            </div>
+                            <button className='mt-3 bg-green-300 px-3 py-1 rounded capitalize'>
+                                {item.status ? item.status : 'Pending'}
+                            </button>
+                        </div>
+                    </div>
+                ))
+            }
+
+           
+        </div>
         <div className='md:my-16 p-8 border shadow-lg mx-auto md:w-7/12 rounded-md'>
             <div className='flex gap-4 font-semibold text-3xl text-purple-600'>
                 <i className="ri-user-line"></i>

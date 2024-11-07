@@ -50,7 +50,7 @@ const Layout = ({children}) => {
         {/* Desktop */}
         <div className='md:block hidden'>
             <aside 
-                className='h-full bg-indigo-500 top-0 left-0 fixed overflow-hidden'
+                className='h-full bg-purple-600 top-0 left-0 fixed overflow-hidden'
                 style={{
                     width: size,
                     transition: '0.5s'

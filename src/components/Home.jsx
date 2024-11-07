@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState } from 'react'
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation'
@@ -9,19 +9,16 @@ import firebaseAppConfig from '../utils/firebase-config';
 import { getFirestore, addDoc, collection, getDocs} from 'firebase/firestore';
 import { onAuthStateChanged, getAuth } from 'firebase/auth';
 import Swal from 'sweetalert2';
-
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 import { loadStripe } from "@stripe/stripe-js";
 // Load your publishable key
 const stripePromise = loadStripe('pk_test_51QGOlSRtGbxG8XdkGhkzfZbkHxCtw79RMZfOAOPRcT5omu4crAwobQ1KUn5iw7MA1bOOsUvurT85RKxYaPoHsjRd00SZBNYuQg');
-
-
 const db = getFirestore(firebaseAppConfig)
 const auth = getAuth(firebaseAppConfig)
 
-
 const Home = () => {
+  const navigate = useNavigate()
   const [session, setSession] = useState(null)
   const [products, setProducts] = useState([])
 
@@ -51,7 +48,9 @@ const Home = () => {
     }
     req()
 
-  }, [])
+  }, []);
+
+  console.log(session, 'fazila')
 
   const addToCart = async (item) => {
     console.log(item)
@@ -74,22 +73,38 @@ const Home = () => {
     }
   }
 
-    const handleCheckout = async () => {
+    const handleCheckout = async (product) => {
       const stripe = await stripePromise;
-  
       try {
         // Make a request to your backend to create a checkout session
+        const amount = product.price - (product.price * product.discount) / 100;
+        product.userId = session.uid;
+        product.status = 'pending'
+        
         const response = await fetch("http://localhost:3001/create-checkout-session", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            amount: 1000, // Amount in cents
-            currency: "usd", // Currency code
+            orderId: product.uid,
+            amount: amount, 
+            currency: "usd", 
+            description: product.title,
+            image: product.photoURL,
+            name: product.displayName,
+            email: product.email,
+            metadata: {
+              userId: session.uid, // Pass metadata
+            },
           }),
-        });
-  
+        }); 
+
+        await addDoc(collection(db, 'orders'), product)
+        console.log("Order saved to Firestore successfully!");
+        navigate('/profile')  
+        
+
         const contentType = response.headers.get("content-type");
   
         if (contentType && contentType.includes("application/json")) {
@@ -105,19 +120,19 @@ const Home = () => {
             // Handle any errors that occur during the redirection
             console.error("Stripe redirection error:", result.error.message);
           }
+
         } else {
           throw new Error("Received non-JSON response from the server");
+          
         }
       } catch (error) {
         // Handle any network or server errors
         console.error("Error creating Stripe checkout session:", error.message);
+        navigate('/failed')
       }
     };
   
-
-  
   return (
-    
     <Layout>
       <div>
         <header className='md:p-16 p-10'>
@@ -171,7 +186,7 @@ const Home = () => {
                     </div>
 
                     <button 
-                      onClick={handleCheckout}
+                      onClick={()=>handleCheckout(item)}
                       className='bg-green-400 p-2 w-full text-white font-bold text-xl mt-4 rounded-md'
                     >
                       Buy Now

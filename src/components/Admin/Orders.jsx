@@ -1,170 +1,21 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Layout from './Layout';
+import firebaseAppConfig from '../../utils/firebase-config';
+import { getFirestore, getDocs, collection } from 'firebase/firestore';
+
+const db = getFirestore(firebaseAppConfig)
 
 const Orders = () => {
 
-    const [orders, setOrders] = useState([
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-        {
-            orderId: '#rty24545',
-            customerName: 'Rohan Kumar',
-            email: 'example@gmail.com',
-            mobile: '+1 4098765434',
-            product: 'MAC Pro M2',
-            amount: 652456,
-            date: '12-10-2024',
-            status: 'pending'
-        },
-    ]);
+   const [orders, setOrders] = useState([])
+
+   useEffect(() => {
+    const req = async () => {
+        const snapshot = await getDocs(collection(db, 'orders'))
+
+    }
+    req()
+   }, [])
 
   return (
     <Layout>
@@ -174,7 +25,7 @@ const Orders = () => {
             <div className='mt-6'>
                 <table className='w-full'>
                     <thead>
-                        <tr className='bg-rose-400 text-white'>
+                        <tr className='bg-purple-600 text-white'>
                             <th className='py-3'>Order Id</th>
                             <th>Customer's Name</th>
                             <th>Email</th>
